@@ -370,7 +370,7 @@ def show_top_5_by_race(df):
     if not filtered_df.empty:
         # En iyi 50 performansı göster (daha fazla veri için)
         top_performers = filtered_df.nsmallest(100, 'Saniye')[
-            ['İsim', 'Şehir', 'Kulüp', 'Yarış', 'Cinsiyet', 'Yaş', 'Zaman', 'Puan']]
+            ['İsim', 'Yarış', 'Şehir', 'Cinsiyet', 'Yaş', 'Zaman', 'Puan', 'Kulüp']]
 
         # Sıralama numarası ekle
         top_performers = top_performers.reset_index(drop=True)
