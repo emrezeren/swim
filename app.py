@@ -186,10 +186,6 @@ def parse_results(text, city_name):
                 cat = result["Yarış_Kategori"]
                 categories[cat] = categories.get(cat, 0) + 1
 
-            st.write("**📊 Normalize Edilmiş Yarış Kategorileri:**")
-            for category, count in sorted(categories.items()):
-                st.write(f"- {category}: {count} sporcu")
-
             # Normalizasyon istatistiği
             original_categories = len(set([result["Yarış"] for result in results]))
             normalized_categories = len(categories)
