@@ -354,8 +354,7 @@ def time_to_seconds(time_str):
 
 
 def show_top_5_by_race(df):
-    """Her yarış için ilk 5'i gösterir - sadece yarış filtresi ile"""
-    st.subheader("🏆 En İyi Performanslar")
+    st.subheader("🏆 Performanslar")
 
     # Sadece yarış filtresi
     race_options = ['Tümü'] + sorted(df['Yarış'].unique())
@@ -370,7 +369,7 @@ def show_top_5_by_race(df):
     # Sonuçları göster
     if not filtered_df.empty:
         # En iyi 50 performansı göster (daha fazla veri için)
-        top_performers = filtered_df.nsmallest(50, 'Saniye')[
+        top_performers = filtered_df.nsmallest(100, 'Saniye')[
             ['İsim', 'Şehir', 'Kulüp', 'Yarış', 'Cinsiyet', 'Yaş', 'Zaman', 'Puan']]
 
         # Sıralama numarası ekle
@@ -386,8 +385,8 @@ def show_top_5_by_race(df):
 
         if selected_race != 'Tümü':
             st.info(
-                f"📊 **{selected_race}** kategorisinde {total_in_category} "
-                f"sporcu içinden en iyi {shown_results} performans gösteriliyor.")
+                f"📊 **{selected_race}** kategorisinde "
+                f"{shown_results} yarışmacı gösteriliyor.")
         else:
             st.info(
                 f"📊 Tüm yarışlarda {total_in_category} sporcu içinden en iyi {shown_results} performans gösteriliyor.")
@@ -397,7 +396,7 @@ def show_top_5_by_race(df):
 
 def show_athlete_analysis(df):
     """Sporcu bazlı analiz - FINA puanına göre sıralama ile"""
-    st.subheader("👤 Sporcu Performans Analizi")
+    st.subheader("👤 Sporcu Analizi")
 
     # Sporcu seçimi - filtrelenmiş veriyi kullan
     col1, col2 = st.columns([2, 1])
@@ -431,7 +430,8 @@ def show_athlete_analysis(df):
             # Filtre uyarısı
             if len(athlete_df) < df[df['İsim'] == selected_athlete].shape[0]:
                 st.info(
-                    "ℹ️ Sidebar filtrelerine göre sonuçlar gösteriliyor. Tüm yarışları görmek için filtreleri temizleyin.")
+                    "ℹ️ Sidebar filtrelerine göre sonuçlar gösteriliyor. "
+                    "Tüm yarışları görmek için filtreleri temizleyin.")
 
             # Her yarış için sıralamayı hesapla
             results_with_rank = []
@@ -561,9 +561,6 @@ def show_athlete_analysis(df):
                 st.warning("⚠️ Bu sporcu için sıralama hesaplanamadı.")
         else:
             st.warning("⚠️ Seçilen sporcu için veri bulunamadı.")
-    else:
-        st.info("👆 Lütfen analiz etmek istediğiniz sporcuyu seçin.")
-
 
 def show_club_analysis(df):
     """Kulüp bazında analiz"""
@@ -660,7 +657,7 @@ if uploaded_files:
 
         # Cache bilgisi
         st.sidebar.success(f"📁 {len(st.session_state.processed_files)} dosya hafızada")
-        if st.sidebar.button("🔄 Tüm Dosyaları Yeniden İşle"):
+        if st.sidebar.button("🔄 Yeniden İşle"):
             st.session_state.processed_files = {}
             st.session_state.all_data = pd.DataFrame()
             st.rerun()
@@ -699,7 +696,7 @@ if uploaded_files:
 
         # Tabs için layout
         tab1, tab2, tab3, tab4 = st.tabs(
-            ["📊 Tüm Sonuçlar", "🏆 En İyi Performanslar", "👤 Sporcu Analizi", "🏛️ Kulüp Analizi"])
+            ["📊 Tüm Sonuçlar", "🏆 Performanslar", "👤 Sporcu Analizi", "🏛️ Kulüp Analizi"])
 
         with tab1:
             st.subheader("📊 Tüm Sonuçlar")
