@@ -214,34 +214,65 @@ def main():
 
     st.title("PDF → Excel Dönüştürücü")
 
+    # Session state başlatma
+    if 'converted_data' not in st.session_state:
+        st.session_state.converted_data = None
+    if 'file_name' not in st.session_state:
+        st.session_state.file_name = None
+
     uploaded_file = st.file_uploader("PDF dosyası seçin", type=['pdf'])
 
+    # Dosya değiştiğinde session state'i temizle
     if uploaded_file is not None:
-        if st.button("Dönüştür"):
+        current_file_name = uploaded_file.name
+        if st.session_state.file_name != current_file_name:
+            st.session_state.converted_data = None
+            st.session_state.file_name = current_file_name
+
+    # Dönüştür butonu
+    if uploaded_file is not None:
+        if st.button("Dönüştür") or st.session_state.converted_data is None:
             with st.spinner("İşleniyor..."):
                 parser = SwimmingParser()
                 data = parser.parse_pdf(uploaded_file)
 
                 if data is not None:
-                    excel_file = create_excel_file(data)
+                    # Session state'e kaydet
+                    st.session_state.converted_data = data
+                    st.success("✅ Dönüştürme tamamlandı!")
 
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Bireysel", len(data['individual']))
-                    with col2:
-                        st.metric("Takım", len(data['team']))
-                    with col3:
-                        st.metric("Diskalifiye", len(data['disqualified']))
+    # Sonuçları göster (session state'den)
+    if st.session_state.converted_data is not None:
+        data = st.session_state.converted_data
 
-                    st.download_button(
-                        label="Excel İndir",
-                        data=excel_file,
-                        file_name=f"sonuclar_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
+        # Metrikler
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Bireysel", len(data['individual']))
+        with col2:
+            st.metric("Takım", len(data['team']))
+        with col3:
+            st.metric("Diskalifiye", len(data['disqualified']))
 
-                    if not data['individual'].empty:
-                        st.dataframe(data['individual'].head(10))
+        # Excel indirme butonu
+        excel_file = create_excel_file(data)
+        st.download_button(
+            label="Excel İndir",
+            data=excel_file,
+            file_name=f"sonuclar_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        # Veri önizleme
+        if not data['individual'].empty:
+            st.subheader("Veri Önizleme")
+            st.dataframe(data['individual'].head(10))
+
+        # Temizle butonu
+        if st.button("🗑️ Verileri Temizle"):
+            st.session_state.converted_data = None
+            st.session_state.file_name = None
+            st.rerun()
 
 
 if __name__ == "__main__":
