@@ -1,4 +1,4 @@
- altair==5.5.0
+altair==5.5.0
 attrs==25.3.0
 blinker==1.9.0
 cachetools==5.5.2
@@ -24,6 +24,7 @@ narwhals==1.42.1
 numpy==2.3.0
 packaging==24.2
 pandas==2.3.0
+pdfminer.six==20250506
 pdfplumber==0.11.7
 pillow==11.2.1
 plotly==6.1.2
@@ -49,3 +50,4 @@ typing_extensions==4.14.0
 tzdata==2025.2
 urllib3==2.4.0
 watchdog==6.0.0
+XlsxWriter==3.2.3
