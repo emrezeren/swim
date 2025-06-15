@@ -19,6 +19,8 @@ if 'processed_files' not in st.session_state:
     st.session_state.processed_files = {}
 if 'processing' not in st.session_state:
     st.session_state.processing = False
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = 0
 
 st.markdown("### Şehir Yarışları Analizi")
 st.markdown("---")
@@ -353,6 +355,7 @@ def time_to_seconds(time_str):
         return None
 
 
+@st.fragment
 def show_top_5_by_race(df):
     st.subheader("🏆 Performanslar")
 
@@ -394,6 +397,7 @@ def show_top_5_by_race(df):
         st.warning("⚠️ Seçilen kriterlere uygun veri bulunamadı.")
 
 
+@st.fragment
 def show_athlete_analysis(df):
     """Sporcu bazlı analiz - FINA puanına göre sıralama ile"""
     st.subheader("👤 Sporcu Analizi")
@@ -430,7 +434,7 @@ def show_athlete_analysis(df):
             # Filtre uyarısı
             if len(athlete_df) < df[df['İsim'] == selected_athlete].shape[0]:
                 st.info(
-                    "ℹ️ Sidebar filtrelerine göre sonuçlar gösteriliyor. "
+                    "Sidebar filtrelerine göre sonuçlar gösteriliyor. "
                     "Tüm yarışları görmek için filtreleri temizleyin.")
 
             # Her yarış için sıralamayı hesapla
@@ -523,19 +527,19 @@ def show_athlete_analysis(df):
 
                 with col1:
                     first_places = len([r for r in results_with_rank if r['Derece'] == 1])
-                    st.metric("🥇 1. Sıra", first_places)
+                    st.metric("1. Sıra", first_places)
 
                 with col2:
                     podium_places = len([r for r in results_with_rank if r['Derece'] <= 3])
-                    st.metric("🏆 Podyum (Top 3)", podium_places)
+                    st.metric("Podyum (Top 3)", podium_places)
 
                 with col3:
                     avg_rank = sum([r['Derece'] for r in results_with_rank]) / len(results_with_rank)
-                    st.metric("📈 Ortalama Sıra", f"{avg_rank:.1f}")
+                    st.metric("Ortalama Sıra", f"{avg_rank:.1f}")
 
                 with col4:
                     avg_score = sum([r['Puan'] for r in results_with_rank]) / len(results_with_rank)
-                    st.metric("⭐ Ortalama FINA", f"{avg_score:.0f}")
+                    st.metric("Ortalama FINA", f"{avg_score:.0f}")
 
                 # Performans trendi (opsiyonel)
                 if len(results_with_rank) > 1:
@@ -561,6 +565,7 @@ def show_athlete_analysis(df):
                 st.warning("⚠️ Bu sporcu için sıralama hesaplanamadı.")
         else:
             st.warning("⚠️ Seçilen sporcu için veri bulunamadı.")
+
 
 def show_club_analysis(df):
     """Kulüp bazında analiz"""
@@ -712,33 +717,33 @@ if uploaded_files:
             with col1:
                 st.metric("👥 Toplam Sporcu", len(filtered_df))
             with col2:
-                st.metric("🏊 Farklı Yarış",
+                st.metric("Farklı Yarış",
                           filtered_df['Yarış_Kategori'].nunique() if 'Yarış_Kategori' in filtered_df.columns else
                           filtered_df['Yarış'].nunique())
             with col3:
-                st.metric("📊 Ortalama Puan", f"{filtered_df['Puan'].mean():.1f}")
+                st.metric("Ortalama Puan", f"{filtered_df['Puan'].mean():.1f}")
 
         with tab2:
             # En iyi performanslar için güncelleme
             show_top_5_by_race(filtered_df)
 
             # Dağılım grafikleri
-            st.subheader("📈 Katılımcı Dağılımları")
+            st.subheader("Katılımcı Dağılımları")
 
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                st.write("**🏙️ Şehir Dağılımı**")
+                st.write("**🏙Şehir Dağılımı**")
                 city_dist = filtered_df['Şehir'].value_counts()
                 st.bar_chart(city_dist)
 
             with col2:
-                st.write("**🎂 Yaş Grubu Dağılımı**")
+                st.write("**Yaş Grubu Dağılımı**")
                 age_dist = filtered_df['Yaş'].value_counts().sort_index()
                 st.bar_chart(age_dist)
 
             with col3:
-                st.write("**👫 Cinsiyet Dağılımı**")
+                st.write("**Cinsiyet Dağılımı**")
                 gender_dist = filtered_df['Cinsiyet'].value_counts()
                 st.bar_chart(gender_dist)
 
