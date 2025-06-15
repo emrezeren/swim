@@ -195,15 +195,9 @@ class SwimmingParser:
 def create_excel_file(data_dict):
     output = io.BytesIO()
 
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        if not data_dict['individual'].empty:
-            data_dict['individual'].to_excel(writer, sheet_name='Bireysel', index=False)
-
-        if not data_dict['team'].empty:
-            data_dict['team'].to_excel(writer, sheet_name='Takım', index=False)
-
-        if not data_dict['disqualified'].empty:
-            data_dict['disqualified'].to_excel(writer, sheet_name='Diskalifiye', index=False)
+    # Sadece bireysel sonuçları Excel'e yaz
+    if not data_dict['individual'].empty:
+        data_dict['individual'].to_excel(output, index=False)
 
     output.seek(0)
     return output
@@ -239,20 +233,11 @@ def main():
                 if data is not None:
                     # Session state'e kaydet
                     st.session_state.converted_data = data
-                    st.success("✅ Dönüştürme tamamlandı!")
+                    st.success("Dönüştürme tamamlandı!")
 
     # Sonuçları göster (session state'den)
     if st.session_state.converted_data is not None:
         data = st.session_state.converted_data
-
-        # Metrikler
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Bireysel", len(data['individual']))
-        with col2:
-            st.metric("Takım", len(data['team']))
-        with col3:
-            st.metric("Diskalifiye", len(data['disqualified']))
 
         # Excel indirme butonu
         excel_file = create_excel_file(data)
@@ -265,8 +250,8 @@ def main():
 
         # Veri önizleme
         if not data['individual'].empty:
-            st.subheader("Veri Önizleme")
-            st.dataframe(data['individual'].head(10))
+            st.subheader("Önizleme")
+            st.dataframe(data['individual'].head(100))
 
         # Temizle butonu
         if st.button("🗑️ Verileri Temizle"):
