@@ -133,9 +133,6 @@ def extract_text(pdf_file):
 
             text = '\n'.join(corrected_lines)
 
-            # Streamlit özet
-            st.success(f"✅ {total_pages} sayfa işlendi - {len(text)} karakter metin çıkarıldı")
-
             # TXT dosyası olarak indirme seçeneği
             if text.strip():
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -282,23 +279,14 @@ def parse_results(text, city_name):
         progress_bar.empty()
         progress_text.empty()
 
-        # Özet bilgi - normalizasyon sonrası
         if results:
             st.success(f"✅ Toplam {len(results)} sporcu kaydı işlendi")
 
-            # Normalize edilmiş kategoriler özeti
             categories = {}
             for result in results:
                 cat = result["Yarış_Kategori"]
                 categories[cat] = categories.get(cat, 0) + 1
 
-            # Normalizasyon istatistiği
-            original_categories = len(set([result["Yarış"] for result in results]))
-            normalized_categories = len(categories)
-
-            if original_categories != normalized_categories:
-                st.info(
-                    f"🔄 Normalizasyon: {original_categories} farklı format → {normalized_categories} standart kategori")
         else:
             st.warning("⚠️ Hiç sporcu kaydı bulunamadı!")
 
@@ -535,12 +523,6 @@ def show_athlete_analysis(df):
             # Sporcunun tüm yarışları - FINA puanına göre sıralama ile
             st.subheader(f"🏊 {selected_athlete} - Yarış Sonuçları")
 
-            # Filtre uyarısı
-            if len(athlete_df) < df[df['İsim'] == selected_athlete].shape[0]:
-                st.info(
-                    "Sidebar filtrelerine göre sonuçlar gösteriliyor. "
-                    "Tüm yarışları görmek için filtreleri temizleyin.")
-
             # Her yarış için sıralamayı hesapla
             results_with_rank = []
 
@@ -754,16 +736,6 @@ if uploaded_files:
     df = process_files(uploaded_files)
 
     if not df.empty:
-        # Başarı mesajı ve temel istatistikler
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.success(f"✅ {len(df)} sporcu bulundu")
-        with col2:
-            st.info(
-                f"🏊 {df['Yarış_Kategori'].nunique() if 'Yarış_Kategori' in df.columns else df['Yarış'].nunique()} farklı yarış")
-        with col3:
-            st.info(f"🏆 {df['Şehir'].nunique()} şehir")
-
         # Cache bilgisi
         st.sidebar.success(f"📁 {len(st.session_state.processed_files)} dosya hafızada")
         if st.sidebar.button("🔄 Yeniden İşle"):
