@@ -4,6 +4,7 @@ import re
 import pandas as pd
 import hashlib
 import os
+from datetime import datetime
 
 # Set page configuration
 st.set_page_config(
@@ -53,11 +54,13 @@ def extract_text(pdf_file):
     try:
         with pdfplumber.open(pdf_file) as pdf:
             total_pages = len(pdf.pages)
+
             progress_bar = st.progress(0)
             progress_text = st.empty()
 
             for i, page in enumerate(pdf.pages):
-                progress_bar.progress((i + 1) / total_pages)
+                progress = (i + 1) / total_pages
+                progress_bar.progress(progress)
                 progress_text.text(f"Sayfa {i + 1}/{total_pages} işleniyor...")
 
                 t = page.extract_text()
@@ -66,10 +69,111 @@ def extract_text(pdf_file):
 
             progress_bar.empty()
             progress_text.empty()
+
+            # "YAŞ KATILIM BARAJINI GEÇTİ" satırlarını sil
+            lines = text.split('\n')
+            cleaned_lines = []
+
+            for line in lines:
+                if "YAŞ KATILIM BARAJINI GEÇTİ" not in line:
+                    cleaned_lines.append(line)
+
+            text = '\n'.join(cleaned_lines)
+
+            # "50m:" ile başlayan satırları sil
+            lines = text.split('\n')
+            cleaned_lines = []
+
+            for line in lines:
+                if not line.strip().startswith("50m:"):
+                    cleaned_lines.append(line)
+
+            text = '\n'.join(cleaned_lines)
+
+            # "SW", "Puanlar", "BAŞHAKEM", "Splash" ile başlayan ve "Sonuçlar" içeren satırları sil
+            lines = text.split('\n')
+            cleaned_lines = []
+
+            for line in lines:
+                line_stripped = line.strip()
+                if not (line_stripped.startswith("SW") or
+                        line_stripped.startswith("Puanlar") or
+                        line_stripped.startswith("BAŞHAKEM") or
+                        line_stripped.startswith("Splash") or
+                        line_stripped.startswith("ANTALYA") or
+                        "MÜSABAKASI" in line_stripped or
+                        "BARAJLARI" in line_stripped or
+                        "Sonuçlar" in line_stripped):
+                    cleaned_lines.append(line)
+
+            text = '\n'.join(cleaned_lines)
+
+            # OCR hatalarını düzelt
+            lines = text.split('\n')
+            corrected_lines = []
+
+            for line in lines:
+                corrected_line = line
+
+                corrected_line = re.sub(r'Kulü(\d+)b:ü(\d+\.\d+)', r'Kulübü \1:\2', corrected_line)
+                corrected_line = re.sub(r'Kulüb(\d+)ü:(\d+\.\d+)', r'Kulübü \1:\2', corrected_line)
+
+                # ü ile rakam arasına boşluk ekle (sadece boşluk yoksa)
+                corrected_line = re.sub(r'Kulübü(?! )(\d+\.\d+)', r'Kulübü \1', corrected_line)
+
+                corrected_line = corrected_line.replace("Kulü3b:ü", "Kulübü ")
+                corrected_line = corrected_line.replace("Kulü1b:ü", "Kulübü ")
+                corrected_line = corrected_line.replace("Kulüb1ü", "Kulübü")
+                corrected_line = corrected_line.replace("Kulub1ü", "Kulübü")
+                corrected_line = corrected_line.replace("Kulub1", "Kulübü")
+
+                corrected_line = re.sub(r'Kulübü(\d+):(\d+\.\d+)', r'Kulübü \1:\2', corrected_line)
+
+                corrected_lines.append(corrected_line)
+
+            text = '\n'.join(corrected_lines)
+
+            # Streamlit özet
+            st.success(f"✅ {total_pages} sayfa işlendi - {len(text)} karakter metin çıkarıldı")
+
+            # TXT dosyası olarak indirme seçeneği
+            if text.strip():
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"extracted_text_{timestamp}.txt"
+
+                st.download_button(
+                    label="📄 Metni TXT olarak İndir",
+                    data=text,
+                    file_name=filename,
+                    mime="text/plain"
+                )
+
+                # Metin önizleme
+                with st.expander("📋 Çıkarılan Metin Önizleme", expanded=False):
+                    st.text_area("", text, height=300)
+
         return text
+
     except Exception as e:
         st.error(f"PDF okuma hatası: {str(e)}")
         return ""
+
+
+def save_text_to_file(text, file_path=None):
+    """Metni TXT dosyasına kaydeder - Yerel kullanım için"""
+    from datetime import datetime
+
+
+    if not file_path:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_path = f"extracted_text_{timestamp}.txt"
+
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(text)
+        return file_path
+    except Exception as e:
+        return None
 
 
 def parse_results(text, city_name):
